@@ -30,7 +30,7 @@ int main()
   for (int i = N; i; i--)
     dfs(i, i);
   for (int i = 1; i <= N; i++)
-    printf("%d", A[i]);
+    printf("%d ", A[i]);
   printf("\n");
   return 0;
 }
