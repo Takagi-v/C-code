@@ -2,7 +2,7 @@
 #include <iomanip>
 
 using namespace std;
-/**/
+/*This program calculates the Grade Point Average (GPA) based on a set of grades and their corresponding credits*/
 int main()
 {
   double totalGPA = 0.0;
