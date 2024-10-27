@@ -1,19 +1,12 @@
 #ifndef SEQQUEUE_H_INCLUDED
 #define SEQQUEUE_H_INCLUDED
 
-class illegalSize
-{
-};
-
-class outOfBound
-{
-};
-
 template <class elemType>
 class seqQueue
 {
 private:
-  elemType *arrayl int maxSize;
+  elemType *array;
+  int maxSize;
   int Front, Rear;
   void doubleSpace();
 

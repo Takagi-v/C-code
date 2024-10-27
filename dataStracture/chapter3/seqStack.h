@@ -1,3 +1,5 @@
+#ifndef SEQSTACK_H
+#define SEQSTACK_H
 class illegalSize
 {
 };
@@ -70,3 +72,5 @@ void seqStack<elemType>::pop()
     throw outOfBound();
   Top--;
 }
+
+#endif
