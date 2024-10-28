@@ -62,6 +62,9 @@ public:
   Node<elemType> *ThreadMid();
   void ThreadMidVisit(Node<elemType> *first);
   void ThreadMidPreVisit();
+  int priOver(const char ch1, const char ch2);
+  void buildExpTree(const char *exp);
+  int calExpTree();
   Node<elemType> *buildTree(elemType pre[], int pl, int pr, elemType mid[], int ml, int mr);
 };
 template <class elemType>
@@ -399,7 +402,7 @@ void BTree<elemType>::ThreadMidPreVisit()
 }
 
 template <class elemType>
-Node<elemType> *Btree<elemType>::buildTree(elemType pre[], int pl, int pr, elemType mid[], int ml, int mr)
+Node<elemType> *BTree<elemType>::buildTree(elemType pre[], int pl, int pr, elemType mid[], int ml, int mr)
 {
   Node<elemType> *p, *leftRoot, *rightRoot;
   int i, pos, num;
@@ -431,5 +434,156 @@ Node<elemType> *Btree<elemType>::buildTree(elemType pre[], int pl, int pr, elemT
   p->left = leftRoot;
   p->right = rightRoot;
   return p;
+}
+
+template <class elemType>
+int BTree<elemType>::priOver(const char ch1, const char ch2)
+{
+  // ch1为新读入操作符，ch2为栈顶操作符
+  switch (ch1)
+  {
+  case '(':
+    return 1;
+  case ')':
+    if (ch2 != '(')
+      return -1;
+    else
+      return 0;
+  case '*':
+  case '/':
+    if (ch2 == '*' || ch2 == '/')
+      return -1;
+    else
+      return 1;
+  case '+':
+  case '-':
+    if (ch2 == '#' || ch2 == '(')
+      return 1;
+    else
+      return -1;
+  };
+}
+
+template <class elemType>
+void BTree<elemType>::buildExpTree(const char *exp)
+{
+  seqStack<char> opStack;
+  seqStack<Node<elemType> *> subStack;
+  Node<elemType> *p, *left, *right;
+  char hash = '#';
+  opStack.push(hash);
+  while (*exp)
+  {
+    if ((*exp >= '0') && (*exp <= '9'))
+    {
+      p = new Node<elemType>(*exp);
+      subStack.push(p);
+    }
+    else
+    {
+      ch = opStack.top();
+      while (priOver(*exp, ch) == -1)
+      {
+        opStack.pop();
+        right = subStack.top();
+        subStack.pop();
+        left = subStack.top();
+        subStack.pop();
+        p = new Node<elemType>(ch, left, right);
+        subStack.push(p);
+        ch = opStack.top();
+      }
+
+      if (priOver(*exp, ch) == 0)
+        opStack.pop();
+      else
+        opStack.push(*exp);
+    }
+    exp++;
+  }
+
+  ch = opStack.top();
+  while (ch != hash)
+  {
+    opStack.pop();
+    right = subStack.top();
+    subStack.pop();
+    left = subStack.top();
+    subStack.pop();
+    p = new Node<elemType>(ch, left, right);
+    subStack.push(p);
+    ch = opStack.top();
+  }
+  root = subStack.top();
+  subStack.pop();
+}
+
+template <class elemType>
+int BTree<elemType>::calExpTree()
+{
+  if (!root)
+    return 0;
+  Node<elemType> *p;
+  seqStack<Node<elemType> *> s1;
+  seqStack<int> s2;
+  seqStack<int> numStack;
+  int flag, num, num1, num2;
+  s1.push(root);
+  s2.push(0);
+  while (!s1.isEmpty())
+  {
+    flag = s2.top();
+    s2.pop();
+    switch (flag)
+    {
+    case 2:
+      s1.pop();
+      if (p->data >= '0' && p->data <= '9')
+        numStack.push(p->data - '0');
+      else
+      {
+        num2 = numStack.top();
+        numStack.pop();
+        num1 = numStack.top();
+        numStack.pop();
+        switch (p->data)
+        {
+        case '+':
+          num = num1 + num2;
+          break;
+        case '-':
+          num = num1 - num2;
+          break;
+        case '*':
+          num = num1 * num2;
+          break;
+        case '/':
+          num = num1 / num2;
+          break;
+        }
+        numStack.push(num);
+      }
+      break;
+    case 1:
+      s2.push(2);
+      if (p->right)
+      {
+        s1.push(p->right);
+        s2.push(0);
+      }
+      break;
+    case 0:
+      s2.push(1);
+      if (p->left)
+      {
+        s1.push(p->left);
+        s2.push(0);
+      }
+      break;
+    };
+  }
+  num = numStack.top();
+  numStack.pop();
+  return num;
 }
 #endif // BTREE_H_INCLUDED
