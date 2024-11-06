@@ -92,37 +92,144 @@ void binarySearchTree<elemType>::insert(const elemType &x, Node<elemType> *&t)
     insert(x, t->right);
 }
 
+// template <class elemType>
+// void binarySearchTree<elemType>::insert(const elemType &x)
+// {
+//   Node<elemType> *p = root;
+//   if (!root)
+//   {
+//     root = new Node<elemType>(x);
+//     return;
+//   }
+//   while (p)
+//   {
+//     if (x == p->data)
+//       return;
+//     if (x < p->data)
+//     {
+//       if (!p->left)
+//       {
+//         p->left = new Node<elemType>(x);
+//         return;
+//       }
+//       p = p->left;
+//     }
+//     else
+//     {
+//       if (!p->right)
+//       {
+//         p->right = new Node<elemType>(x);
+//         return;
+//       }
+//       p = p->right;
+//     }
+//   }
+// }
+
 template <class elemType>
-void binarySearchTree<elemType>::insert(const elemType &x)
+void binarySearchTree<elemType>::remove(const elemType &x)
 {
-  Node<elemType> *p = root;
-  if (!root)
-  {
-    root = new Node<elemType>(x);
+  remove(x, root);
+}
+template <class elemType>
+void binarySearchTree<elemType>::remove(const elemType &x, Node<elemType> *&t)
+{
+  if (!t)
     return;
+  if (x < t->data)
+    remove(x, t->left);
+  else if (x > t->data)
+    remove(x, t->right);
+  else
+  {
+    if (!t->left && !t->right)
+    {
+      delete t;
+      t = NULL;
+      return;
+    }
+    if (!t->left || !t->right)
+    {
+      Node<elemType> *tmp;
+      tmp = t;
+      t = (t->left) ? t->left : t->right;
+      delete tmp;
+      return;
+    }
+
+    Node<elemType> *p = t->right, *substitute;
+    while (p->left)
+      p = p->left;
+    substitute = p;
+    t->data = substitute->data;
+    remove(substitute->data, t->right);
   }
+}
+
+template <class elemType>
+void binarySearchTree<elemType>::remove(const elemType &x)
+{
+  if (!root)
+    return;
+  Node<elemType> *p = root, *parent = NULL;
+  int flag = 0; // 0表示左子树，1表示右子树
   while (p)
   {
-    if (x == p->data)
-      return;
     if (x < p->data)
     {
-      if (!p->left)
-      {
-        p->left = new Node<elemType>(x);
-        return;
-      }
-      p = p->left;
-    }
-    else
-    {
-      if (!p->right)
-      {
-        p->right = new Node<elemType>(x);
-        return;
-      }
+      parent = p;
+      flag = 0;
       p = p->right;
+      continue;
     }
+    if (x > p->data)
+    {
+      parent = p;
+      flag = 1;
+      p = p->right;
+      continue;
+    }
+    if (!p->left && !p->right)
+    {
+      delete p;
+      if (!parent)
+      {
+        root = NULL;
+        return;
+      }
+      if (flag == 0)
+        parent->left = NULL;
+      else
+        parent->right = NULL;
+    }
+    if (!p->left || !p->right)
+    {
+      Node<elemType> *tmp = p;
+      if (!parent)
+        root = (p->left) ? p->left : p->right;
+      else
+      {
+        if (flag == 0)
+          parent->left = (p->left) ? p->left : p->right;
+        else
+          parent->right = (p->left) ? p->left : p->right;
+      }
+      delete tmp;
+      return;
+    }
+    Node<elemType> *q = p->left, *substitute;
+    parent = p;
+    flag = 0;
+    while (q->right)
+    {
+      parent = q;
+      flag = 1;
+      q = q->right;
+    }
+    substitute = q;
+    p->data = substitute->data;
+    substitute->data = x;
+    p = substitute;
   }
 }
 
