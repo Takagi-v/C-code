@@ -70,7 +70,7 @@ void priorityQueue<elemType>::adjust(int hole)
     if (x < array[minChild])
       break;
     array[hole] = array[minChild];
-    hole minChild;
+    hole = minChild;
   }
   array[hole] = x;
 }
