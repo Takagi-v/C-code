@@ -47,6 +47,11 @@ template <class elemType>
 Polynomial<elemType>::Polynomial(const elemType &stop)
 {
   head = new Node<elemType>();
+  if (head == NULL)
+  {
+    cout << "内存分配失败" << endl;
+    exit(1);
+  }
   stop_flag.coef = stop.coef;
   stop_flag.exp = stop.exp;
 }
@@ -56,23 +61,47 @@ void Polynomial<elemType>::getPoly()
 {
   Node<elemType> *p, *tmp;
   elemType e;
+  int lastExp = -1; // 用于检查指数递增
+
   p = head;
-  cout << "请按照指数从小到大输入系数，指数对";
-  cin >> e.coef >> e.exp;
+  cout << "请按照指数从小到大输入系数，指数对" << endl;
 
   while (true)
   {
+    if (!(cin >> e.coef >> e.exp))
+    {
+      clear();
+      throw std::runtime_error("输入格式错误");
+    }
+
     if ((e.coef == stop_flag.coef) && (e.exp == stop_flag.exp))
       break;
 
-    tmp = new Node<elemType>();
-    tmp->data.coef = e.coef;
-    tmp->data.exp = e.exp;
-    tmp->next = NULL;
-    p->next = tmp;
-    p = tmp;
+    if (e.exp <= lastExp)
+    {
+      clear();
+      throw std::runtime_error("指数必须严格递增");
+    }
 
-    cin >> e.coef >> e.exp;
+    try
+    {
+      tmp = new Node<elemType>();
+      if (!tmp)
+        throw std::bad_alloc();
+
+      tmp->data.coef = e.coef;
+      tmp->data.exp = e.exp;
+      tmp->next = NULL;
+      p->next = tmp;
+      p = tmp;
+
+      lastExp = e.exp;
+    }
+    catch (std::bad_alloc &)
+    {
+      clear();
+      throw;
+    }
   }
 }
 
@@ -88,42 +117,55 @@ void Polynomial<elemType>::addPoly(const Polynomial &La, const Polynomial &Lb)
 
   while (pa && pb)
   {
-    if (pa->data.exp == pb->data.exp)
+    try
     {
-      if (pa->data.coef + pb->data.coef == 0)
+      if (pa->data.exp == pb->data.exp)
       {
+        int sum = pa->data.coef + pb->data.coef;
+        if (sum != 0)
+        {
+          tmp = new Node<elemType>();
+          if (!tmp)
+            throw std::bad_alloc();
+          tmp->data.coef = sum;
+          tmp->data.exp = pa->data.exp;
+          tmp->next = NULL;
+          pc->next = tmp;
+          pc = tmp;
+        }
         pa = pa->next;
         pb = pb->next;
-        continue;
+      }
+      else if (pa->data.exp < pb->data.exp)
+      {
+        tmp = new Node<elemType>();
+        if (!tmp)
+          throw std::bad_alloc();
+        tmp->data.coef = pa->data.coef;
+        tmp->data.exp = pa->data.exp;
+        tmp->next = NULL;
+        pc->next = tmp;
+        pc = tmp;
+        pa = pa->next;
       }
       else
       {
         tmp = new Node<elemType>();
-        tmp->data.coef = pa->data.coef + pb->data.coef;
-        tmp->data.exp = pa->data.exp;
+        if (!tmp)
+          throw std::bad_alloc();
+        tmp->data.coef = pb->data.coef;
+        tmp->data.exp = pb->data.exp;
         tmp->next = NULL;
-        pa = pa->next;
+        pc->next = tmp;
+        pc = tmp;
         pb = pb->next;
       }
     }
-    else if (pa->data.exp < pb->data.exp)
+    catch (std::bad_alloc &)
     {
-      tmp = new Node<elemType>();
-      tmp->data.coef = pb->data.coef;
-      tmp->data.exp = pb->data.exp;
-      tmp->next = NULL;
-      pb = pb->next;
+      clear(); // 清理已分配的内存
+      throw;   // 重新抛出异常
     }
-    else
-    {
-      tmp = new Node<elemType>();
-      tmp->data.coef = pa->data.coef;
-      tmp->data.exp = pa->data.exp;
-      tmp->next = NULL;
-      pa = pa->next;
-    }
-    pc->next = tmp;
-    pc = tmp;
   }
   while (pa)
   {

@@ -66,6 +66,7 @@ public:
   void buildExpTree(const char *exp);
   int calExpTree();
   Node<elemType> *buildTree(elemType pre[], int pl, int pr, elemType mid[], int ml, int mr);
+  ~BTree() { DelTree(); }
 };
 template <class elemType>
 void BTree<elemType>::createTree(const elemType &flag)
@@ -285,6 +286,7 @@ void BTree<elemType>::levelOrder()
   Node<elemType> *p;
   if (!root)
     return;
+  que.enQueue(root);
   while (!que.isEmpty())
   {
     p = que.front();
@@ -481,7 +483,7 @@ void BTree<elemType>::buildExpTree(const char *exp)
     }
     else
     {
-      ch = opStack.top();
+      char ch = opStack.top();
       while (priOver(*exp, ch) == -1)
       {
         opStack.pop();
@@ -534,6 +536,7 @@ int BTree<elemType>::calExpTree()
   {
     flag = s2.top();
     s2.pop();
+    p = s1.top();
     switch (flag)
     {
     case 2:

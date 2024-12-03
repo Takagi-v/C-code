@@ -20,11 +20,11 @@ public:
   priorityQueue(int size = 100);
   priorityQueue(const elemType *items, int size);
   ~priorityQueue() { delete[] array; };
-  bool isEmpty() { return currentLen == 0; };
-  bool isFull() { return currentLen == maxSize - 1; };
-  void enQueue(const elemType &x) = 0;
-  void deQueue() = 0;
-  elemType front() const = 0;
+  bool isEmpty() const { return currentLen == 0; };
+  bool isFull() const { return currentLen == maxSize - 1; };
+  void enQueue(const elemType &x);
+  void deQueue();
+  elemType front() const;
 };
 
 template <class elemType>
@@ -40,7 +40,7 @@ priorityQueue<elemType>::priorityQueue(int size)
 template <class elemType>
 priorityQueue<elemType>::priorityQueue(const elemType *items, int size)
 {
-  if (n < 1)
+  if (size < 1)
     throw illegalSize();
   array = new elemType[size + 10];
   if (!array)
@@ -49,7 +49,7 @@ priorityQueue<elemType>::priorityQueue(const elemType *items, int size)
   currentLen = size;
   for (int i = 1; i <= size; i++)
     array[i] = items[i - 1];
-  for (i = n / 2; i >= 1; i--)
+  for (int i = size / 2; i >= 1; i--)
     adjust(i);
 }
 
@@ -101,6 +101,21 @@ void priorityQueue<elemType>::enQueue(const elemType &x)
   for (; hole > 1 && x < array[hole / 2]; hole /= 2)
     array[hole] = array[hole / 2];
   array[hole] = x;
+}
+
+template <class elemType>
+void priorityQueue<elemType>::doubleSpace()
+{
+  elemType *tmp = new elemType[2 * maxSize];
+  if (!tmp)
+    throw illegalSize();
+
+  for (int i = 1; i <= currentLen; ++i)
+    tmp[i] = array[i];
+
+  delete[] array;
+  array = tmp;
+  maxSize *= 2;
 }
 
 #endif // PRIORITY_QUEUE_H_INCLUDED

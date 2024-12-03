@@ -1,6 +1,14 @@
 #ifndef SEQQUEUE_H_INCLUDED
 #define SEQQUEUE_H_INCLUDED
 
+// 在类定义前添加异常类
+class illegalSize
+{
+};
+class outOfBound
+{
+};
+
 template <class elemType>
 class seqQueue
 {
@@ -14,7 +22,7 @@ public:
   seqQueue(int size = 10);
   bool isEmpty();
   bool isFull();
-  elemType front();
+  elemType &front();
   void enQueue(const elemType &x);
   void deQueue();
   ~seqQueue();
@@ -43,7 +51,7 @@ bool seqQueue<elemType>::isFull()
 }
 
 template <class elemType>
-elemType seqQueue<elemType>::front()
+elemType &seqQueue<elemType>::front()
 {
   if (isEmpty())
     throw outOfBound();
@@ -76,16 +84,17 @@ seqQueue<elemType>::~seqQueue()
 template <class elemType>
 void seqQueue<elemType>::doubleSpace()
 {
-  elemType *tmp = array;
-  array = new elemType[2 * maxSize];
-  if (!array)
+  elemType *newArray = new elemType[2 * maxSize];
+  int i, j;
+  if (!newArray)
     throw illegalSize();
-  for (int i = 1; i < maxSize; ++i)
-    array[i] = tmp[(Front + i) % maxSize];
+  for (i = 1, j = (Front + 1) % maxSize; j != (Rear + 1) % maxSize; i++, j = (j + 1) % maxSize)
+    newArray[i] = array[j];
+  delete[] array;
+  array = newArray;
   Front = 0;
-  Rear = maxSize - 1;
+  Rear = i - 1;
   maxSize *= 2;
-  delete[] tmp;
 }
 
 #endif // SEQQUEUE_H_INCLUDED

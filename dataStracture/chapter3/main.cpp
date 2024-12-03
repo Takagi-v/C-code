@@ -1,27 +1,17 @@
 #include <iostream>
-#include "seqStack.h"
-#include "linkStack.h"
+#include "Queue.h"
 using namespace std;
 
 int main()
 {
   // seqStack<char> s;
-  linkStack<char> s;
-  char ctemp;
-
-  cout << "Input:";
-  ctemp = cin.get();
-  while (ctemp != '\n')
+  linkQueue<int> q;
+  int i, x;
+  for (i = 0; i < 15; i++)
+    q.enQueue(i);
+  while (!q.isEmpty())
   {
-    s.push(ctemp);
-    ctemp = cin.get();
+    cout << q.front() << " ";
+    q.deQueue();
   }
-  cout << "Output:";
-  while (!s.isEmpty())
-  {
-    ctemp = s.top();
-    s.pop();
-    cout << ctemp;
-  }
-  return 0;
 }

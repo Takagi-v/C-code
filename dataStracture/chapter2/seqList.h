@@ -1,6 +1,14 @@
 #ifndef seqList_H
 #define seqList_H
 
+// 异常类定义放在最前面
+class outOfRange
+{
+};
+class illegalSize
+{
+};
+
 template <class elemType>
 class seqList
 {
@@ -21,13 +29,17 @@ public:
   void remove(int i);                    // 删除第i个位置的元素
   int length() const;                    // 获取线性表的长度
 };
+
+// 成员函数的实现
 template <class elemType>
 seqList<elemType>::seqList(int initSize)
 {
+  if (initSize <= 0)
+    throw illegalSize();
   elem = new elemType[initSize];
   if (!elem)
     throw illegalSize();
-  maxSize = initSize - 1;
+  maxSize = initSize;
   len = 0;
 }
 
@@ -35,10 +47,12 @@ template <class elemType>
 void seqList<elemType>::doubleSpace()
 {
   elemType *tmp = elem;
-  elem = new elemType[2 * (maxSize + 1)];
-  for (int i = 0; i <= maxSize; ++i)
+  elem = new elemType[2 * maxSize];
+  if (!elem)
+    throw illegalSize();
+  for (int i = 0; i < len; ++i)
     elem[i] = tmp[i];
-  maxSize = 2 * (maxSize + 1) - 1;
+  maxSize = 2 * maxSize;
   delete[] tmp;
 }
 
@@ -64,7 +78,7 @@ void seqList<elemType>::insert(int i, const elemType &x)
 {
   if (i < 0 || i > len)
     throw outOfRange();
-  if (len == maxSize + 1)
+  if (len == maxSize) // 修改这里的条件
     doubleSpace();
   for (int j = len; j > i; --j)
     elem[j] = elem[j - 1];
@@ -81,6 +95,17 @@ void seqList<elemType>::remove(int i)
     elem[j] = elem[j + 1];
   --len;
 }
-#include "seqList.cpp"
+
+template <class elemType>
+int seqList<elemType>::length() const
+{
+  return len;
+}
+
+template <class elemType>
+seqList<elemType>::~seqList()
+{
+  delete[] elem;
+}
 
 #endif

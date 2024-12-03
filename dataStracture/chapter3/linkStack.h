@@ -50,6 +50,8 @@ template <class elemType>
 void linkStack<elemType>::push(const elemType &e)
 {
   Node<elemType> *tmp = new Node<elemType>(e, Top);
+  if (!tmp)
+    throw outOfBound();
   Top = tmp;
 }
 

@@ -12,8 +12,14 @@ void inToSufForm(char *inStr, char *sufStr)
   j = 0;
   while (inStr[i] != '\0')
   {
-    if ((inStr[i] >= '0') && (inStr[i] <= '9'))
-      sufStr[j++] = inStr[i++];
+    if (isdigit(inStr[i]))
+    {
+      while (isdigit(inStr[i]))
+      {
+        sufStr[j++] = inStr[i++];
+      }
+      sufStr[j++] = '#';
+    }
     else
     {
       switch (inStr[i])
@@ -70,14 +76,22 @@ void inToSufForm(char *inStr, char *sufStr)
 int calcPost(char *sufStr)
 {
   int op1, op2, op;
-  int tmp, i;
+  int i = 0;
   linkStack<int> s;
-  i = 0;
+
   while (sufStr[i] != '\0')
   {
-    if ((sufStr[i] >= '0') && (sufStr[i] <= '9'))
+    if (isdigit(sufStr[i]))
     {
-      s.push(sufStr[i] - '0');
+      int num = 0;
+      while (isdigit(sufStr[i]))
+      {
+        num = num * 10 + (sufStr[i] - '0');
+        i++;
+      }
+      s.push(num);
+      if (sufStr[i] == '#')
+        i++;
     }
     else
     {
@@ -97,12 +111,17 @@ int calcPost(char *sufStr)
         op = op1 * op2;
         break;
       case '/':
+        if (op2 == 0)
+        {
+          cout << "Error: Division by zero" << endl;
+          return 0;
+        }
         op = op1 / op2;
         break;
-      };
+      }
       s.push(op);
+      i++;
     }
-    i++;
   }
   op = s.top();
   s.pop();
@@ -115,7 +134,20 @@ int main()
   char sufStr[80];
   int result;
   cout << "Input:";
-  cin >> inStr;
+  if (cin.getline(inStr, 80))
+  {
+    for (int i = 0; inStr[i]; i++)
+    {
+      if (!isdigit(inStr[i]) &&
+          inStr[i] != '+' && inStr[i] != '-' &&
+          inStr[i] != '*' && inStr[i] != '/' &&
+          inStr[i] != '(' && inStr[i] != ')')
+      {
+        cout << "Invalid input" << endl;
+        return 1;
+      }
+    }
+  }
   inToSufForm(inStr, sufStr);
   result = calcPost(sufStr);
   cout << "suffix form:" << sufStr << endl;

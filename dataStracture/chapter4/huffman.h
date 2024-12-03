@@ -8,8 +8,9 @@ struct HuffmanNode
 template <class elemType>
 int minIndex(HuffmanNode<elemType> Bt[], int k, int m)
 {
-  int i, min, minWeight = 9999;
-  for (i = m - 1, i > k; i--)
+  int i, min = -1;
+  double minWeight = 9999;
+  for (i = m - 1; i > k; i--)
   {
     if ((Bt[i].parent == 0) && (Bt[i].weight < minWeight))
     {
@@ -17,6 +18,8 @@ int minIndex(HuffmanNode<elemType> Bt[], int k, int m)
       min = i;
     }
   }
+  if (min == -1)
+    return k;
   return min;
 }
 
@@ -41,12 +44,13 @@ HuffmanNode<elemType> *BestBinaryTree(elemType a[], double w[], int n)
   while (i != 0)
   {
     first_min = minIndex(BBTree, i, m);
-    BBTree[fisrt_min].parent = i;
+    BBTree[first_min].parent = i;
     second_min = minIndex(BBTree, i, m);
     BBTree[second_min].parent = i;
     BBTree[i].weight = BBTree[first_min].weight + BBTree[second_min].weight;
     BBTree[i].leftChild = first_min;
     BBTree[i].rightChild = second_min;
+    BBTree[i].parent = 0;
     i--;
   }
   return BBTree;
@@ -57,12 +61,11 @@ char **HuffmanCode(HuffmanNode<elemType> BBTree[], int n)
 {
   seqStack<int> stack;
   char **HFCode;
-  char zero = '0', one = '1';
-  int m, parent, i, j, child;
+  int m = 2 * n;
+  int i, j, child;
   HFCode = new char *[n];
   for (i = 0; i < n; i++)
-    HFCode[i] = new char[n];
-  m = 2 * n;
+    HFCode[i] = new char[n + 1];
   if (n == 0)
     return HFCode;
   if (n == 1)
@@ -73,24 +76,41 @@ char **HuffmanCode(HuffmanNode<elemType> BBTree[], int n)
   for (i = m - 1; i >= n; i--)
   {
     child = i;
-    parent = BBTree[child].parent;
-    while (parent != 0)
+    while (BBTree[child].parent != 0)
     {
-      if (BBTree[parent].leftChild == child)
-        stack.push(0);
-      else
-        stack.push(1);
-      child = parent;
-      parent = BBTree[child].parent;
+      stack.push(BBTree[child].parent - child);
+      child = BBTree[child].parent;
     }
     j = 0;
     while (!stack.isEmpty())
     {
-      HFCode[m - i - 1][j] = stack.top();
+      HFCode[m - i - 1][j] = (stack.top() == 0) ? '0' : '1';
       stack.pop();
       j++;
     }
     HFCode[m - i - 1][j] = '\0';
   }
   return HFCode;
+}
+
+template <class elemType>
+void deleteHuffmanTree(HuffmanNode<elemType> *tree, int n)
+{
+  if (tree != nullptr)
+  {
+    delete[] tree;
+  }
+}
+
+template <class elemType>
+void deleteHuffmanCode(char **HFCode, int n)
+{
+  if (HFCode != nullptr)
+  {
+    for (int i = 0; i < n; i++)
+    {
+      delete[] HFCode[i];
+    }
+    delete[] HFCode;
+  }
 }

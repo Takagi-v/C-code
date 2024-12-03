@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <queue>
+#include <stack>
 using namespace std;
 
 template <class elemType>
@@ -18,8 +19,13 @@ private:
   Node *left, *right;
   int factor; // 平衡因子
 public:
-  Node() { left = NULL, right = NULL; }
-  Node(const elemType &x, Node *l = NULL, Node *r = NULL) : data(x), left(l), right(r) {}
+  Node()
+  {
+    left = NULL;
+    right = NULL;
+    factor = 0;
+  }
+  Node(const elemType &x, Node *l = NULL, Node *r = NULL) : data(x), left(l), right(r), factor(0) {}
 };
 
 template <class elemType>
@@ -30,14 +36,27 @@ private:
   bool search(const elemType &x, Node<elemType> *t) const;
   void insert(const elemType &x, Node<elemType> *&t);
   void remove(const elemType &x, Node<elemType> *&t);
+  void clear(Node<elemType> *t);
+  Node<elemType> *clone(Node<elemType> *t);
 
 public:
   binarySearchTree() { root = NULL; }
+  binarySearchTree(const binarySearchTree &rhs) { root = clone(rhs.root); }
+  binarySearchTree &operator=(const binarySearchTree &rhs)
+  {
+    if (this != &rhs)
+    {
+      clear(root);
+      root = clone(rhs.root);
+    }
+    return *this;
+  }
   bool search(const elemType &x) const;
   void insert(const elemType &x);
   void insertAVL(const elemType &x);
   void remove(const elemType &x);
   void levelTraverse() const;
+  ~binarySearchTree() { clear(root); }
 };
 
 template <class elemType>
@@ -84,9 +103,10 @@ template <class elemType>
 void binarySearchTree<elemType>::insert(const elemType &x, Node<elemType> *&t)
 {
   if (t == NULL)
+  {
     t = new Node<elemType>(x);
-  if (x == t->data)
     return;
+  }
   if (x < t->data)
     insert(x, t->left);
   else if (x > t->data)
@@ -180,7 +200,7 @@ void binarySearchTree<elemType>::remove(const elemType &x)
     {
       parent = p;
       flag = 0;
-      p = p->right;
+      p = p->left;
       continue;
     }
     if (x > p->data)
@@ -202,6 +222,7 @@ void binarySearchTree<elemType>::remove(const elemType &x)
         parent->left = NULL;
       else
         parent->right = NULL;
+      return;
     }
     if (!p->left || !p->right)
     {
@@ -241,7 +262,7 @@ void binarySearchTree<elemType>::insertAVL(const elemType &x)
   Node<elemType> *up, *mid, *low, *tmp;
   char lowerArm = '#', upperArm = '#', parentFlag;
   stack<Node<elemType> *> s;
-  const char *pattern = "##"; // 存储类型
+  string pattern = "##"; // 存储类型
   if (!root)
   {
     root = new Node<elemType>(x);
@@ -284,7 +305,7 @@ void binarySearchTree<elemType>::insertAVL(const elemType &x)
   low = mid = up = NULL;
   lowerArm = upperArm = '#';
 
-  while (!s.isEmpty())
+  while (!s.empty())
   {
     p = s.top();
     s.pop();
@@ -320,7 +341,7 @@ void binarySearchTree<elemType>::insertAVL(const elemType &x)
   if (up->factor != 2 && up->factor != -2)
     return;
 
-  if (s.isEmpty()) // 冲突节点为根节点
+  if (s.empty()) // 冲突节点为根节点
     parent = NULL;
   else
   {
@@ -337,7 +358,7 @@ void binarySearchTree<elemType>::insertAVL(const elemType &x)
   {
     if (upperArm == 'L' && lowerArm == 'L') // LL型 上臂旋
     {
-      if (strcmp(pattern, "##") == 0)
+      if (pattern == "##")
         pattern = "LL";
       up->left = mid->right;
       mid->right = up;
@@ -346,7 +367,7 @@ void binarySearchTree<elemType>::insertAVL(const elemType &x)
     }
     if (upperArm == 'R' && lowerArm == 'R') // RR型 上臂旋
     {
-      if (strcmp(pattern, "##") == 0)
+      if (pattern == "##")
         pattern = "RR";
       up->right = mid->left;
       mid->left = up;
@@ -412,55 +433,95 @@ void binarySearchTree<elemType>::insertAVL(const elemType &x)
     else
       parent->right = p;
   }
-  // 调整平衡因子
-  if (strcmp(pattern, "LL") == 0 || strcmp(pattern, "RR") == 0)
+  // 调整衡因子
+  if (pattern == "LL" || pattern == "RR")
   {
     up->factor = 0;
     mid->factor = 0;
     return;
   }
-  if (strcmp(pattern, "LR0") == 0)
+  if (pattern == "LR0")
   {
     up->factor = 0;
     mid->factor = 0;
     low->factor = 0;
     return;
   }
-  if (strcmp(pattern, "LR1") == 0)
+  if (pattern == "LR1")
   {
     up->factor = -1;
     mid->factor = 0;
     low->factor = 0;
     return;
   }
-  if (strcmp(pattern, "LR2") == 0)
+  if (pattern == "LR2")
   {
     up->factor = 0;
     mid->factor = 0;
     low->factor = 1;
     return;
   }
-  if (strcmp(pattern, "RL0") == 0)
+  if (pattern == "RL0")
   {
     up->factor = 0;
     mid->factor = 0;
     low->factor = 0;
     return;
   }
-  if (strcmp(pattern, "RL1") == 0)
+  if (pattern == "RL1")
   {
     up->factor = 0;
     mid->factor = 0;
     low->factor = -1;
     return;
   }
-  if (strcmp(pattern, "RL2") == 0)
+  if (pattern == "RL2")
   {
     up->factor = 1;
     mid->factor = 0;
     low->factor = 0;
     return;
   }
+}
+
+template <class elemType>
+void binarySearchTree<elemType>::clear(Node<elemType> *t)
+{
+  if (t == NULL)
+    return;
+  clear(t->left);
+  clear(t->right);
+  delete t;
+}
+
+template <class elemType>
+Node<elemType> *binarySearchTree<elemType>::clone(Node<elemType> *t)
+{
+  if (t == NULL)
+    return NULL;
+  return new Node<elemType>(t->data,
+                            clone(t->left),
+                            clone(t->right));
+}
+
+template <class elemType>
+void binarySearchTree<elemType>::levelTraverse() const
+{
+  if (!root)
+    return;
+  queue<Node<elemType> *> q;
+  q.push(root);
+  while (!q.empty())
+  {
+    Node<elemType> *current = q.front();
+    q.pop();
+    cout << current->data << " ";
+    if (current->left)
+      q.push(current->left);
+    if (current->right)
+      q.push(current->right);
+  }
+  cout << endl;
 }
 
 #endif // BINARY_SEARCH_TREE_H_INCLUDED
